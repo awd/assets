@@ -50,6 +50,16 @@ class AssetHelper extends AppHelper {
   }
 
 /**
+* Displays the asset file extension
+* 
+* @param mixed $data Model Data to operate on
+* @access public
+*/
+  function extension($data = array()) {
+    return pathinfo($this->url($data), PATHINFO_EXTENSION);
+  }
+
+/**
 * Display the filesize of this asset
 * 
 * @param mixed $data Model Data to operate on
