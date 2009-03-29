@@ -37,7 +37,7 @@ class AssetHelper extends AppHelper {
 * @access public
 */
   function detach($data = array()) {
-    if (empty($data)) return null;
+    if (empty($data['id'])) return null;
     
     # create an empty route array
     $output = array(
@@ -67,7 +67,7 @@ class AssetHelper extends AppHelper {
 * @access public
 */
   function filesize($data = array(), $human = true) {
-    if (empty($data)) return null;
+    if (empty($data['id'])) return null;
     
     if ($human == true) return assetHumanizeSize($data['size']);
     
@@ -84,6 +84,8 @@ class AssetHelper extends AppHelper {
 * @access public
 */
   function image($data = array(), $version = null, $options = array()) {
+    if (empty($data['id'])) return null;
+    
     $path = $this->url($data, $version);
     
     return $this->output($this->Html->image($path, $options));
@@ -97,7 +99,7 @@ class AssetHelper extends AppHelper {
 * @access public
 */
   function url($data = array(), $version = null) {
-    if (empty($data)) return null;
+    if (empty($data['id'])) return null;
     
     # ensure version is non-null before adding separator
     $version = !empty($version) && $version != 'original' ? $version .'.' : null;
