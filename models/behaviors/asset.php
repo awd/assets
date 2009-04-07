@@ -859,7 +859,7 @@ class AssetBehavior extends ModelBehavior {
 * 
 * @param string $source Full file path of the source file to be moved or copied
 * @param string $filename New name of the created file
-* @param boolean $upload Tmp files are moved (uploaded), while duplicate files are copied (for resizing purposes)
+* @param mixed $upload Tmp files are moved (uploaded), while duplicate files are copied (for resizing purposes)
 * @access private
 */
   function _saveFile($source, $filename, $upload = true) {
@@ -872,7 +872,12 @@ class AssetBehavior extends ModelBehavior {
       case false:
         if (!copy($source, $destination)) return false;
       break;
+      case 'move':
+        if (!rename($source, $destination)) return false;
+      break;
       default:
+        if (!is_uploaded_file($source)) return $this->_saveFile($source, $filename, 'move');
+      
         if (!move_uploaded_file($source, $destination)) return false;
       break;
     }
