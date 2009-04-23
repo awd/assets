@@ -4,7 +4,7 @@
 *
 * @version 0.2
 * @created November 30th, 2007
-* @modified February 6th, 2009
+* @modified April 21st, 2009
 * @author Adam Doeler
 * @email adam@adamdoeler.com
 * @website http://adamdoeler.com
@@ -39,11 +39,10 @@
 * Delete the asset file on disk
 * 
 * @param object $model Model using this behavior
-* @param string $parent Name of the Parent Model for this Asset
-* @param int $foreignKey Parent ID for the Parent Model
-* @access public
+* @param array $assets An array containing file names to remove
+* @access private
 */
-  function assetDelete(&$model, $parent, $foreignKey, $assets = array()) {
+  function assetDelete(&$model, $assets = array()) {
     $output = array();
 
     # initialize Folder class
@@ -51,17 +50,14 @@
 
     # define the directory path
     $path = WWW_ROOT . 'files' .DS;
-    $path .= strtolower(Inflector::pluralize($parent)) .DS;
-    $path .= $foreignKey .DS;
+    $path .= strtolower(Inflector::pluralize($model->name)) .DS;
+    $path .= $model->id .DS;
 
     # determine if we need to remove all assets or an individual asset
     if (!empty($assets) && is_array($assets)) {
-
       $errors = false;
 
-      foreach ($assets as $asset) {
-        if (file_exists($path.$asset) && !unlink($path.$asset)) $errors = true;
-      }
+      foreach ($assets as $asset) if (!empty($asset) && file_exists($path.$asset) && !unlink($path.$asset)) $errors = true;
 
       if ($errors == true) {
         $output = array(
@@ -72,7 +68,6 @@
 
         return $output;
       }
-
     } else {
 
       # remove files and directories from disk
@@ -88,7 +83,7 @@
 
       # remove model storage directory if empty - reset path
       $path = WWW_ROOT . 'files' .DS;
-      $path .= strtolower(Inflector::pluralize($parent)) .DS;
+      $path .= strtolower(Inflector::pluralize($model->name)) .DS;
     }
 
     # attempt to clean directory if empty of files
@@ -107,6 +102,40 @@
     }
 
     return true;
+  }
+
+/**
+* Creates the directory where files are to be stored, filepath looks like: /files/{model}/{id}/
+* 
+* @param object $model Model using this behavior
+* @access private
+*/
+  function assetDirectoryCreate(&$model) {
+    $folder =& new Folder();
+
+    # define the directory path
+    $path = WWW_ROOT . 'files' .DS;
+    $path .= strtolower(Inflector::pluralize($model->name)) .DS;
+    $path .= $model->id .DS;
+
+    if (is_dir($path)) return true;
+
+    # create the directory path
+    return $folder->create($path);
+  }
+
+/**
+* Returns the directory path created based on the model
+* 
+* @param object $model Model using this behavior
+* @access private
+*/
+  function assetDirectoryPath(&$model) {
+    $path = WWW_ROOT . 'files' .DS;
+    $path .= strtolower(Inflector::pluralize($model->name)) .DS;
+    $path .= $model->id .DS;
+
+    return $path;
   }
 
 /**
@@ -130,35 +159,72 @@
   }
 
 /**
+* Returns the new file name based on the version, field, and extension
+* 
+* @param string $source Filename to parse and format
+* @param string $version Determines if we are naming an original or a copy
+* @param string $key append the key to the beginning of the original file only
+* @access private
+*/
+  function assetFileName($source, $version = null, $key = null) {
+
+    # get the file name and extension
+    $filename = pathinfo($source, PATHINFO_FILENAME);
+    $extension = pathinfo($source, PATHINFO_EXTENSION);
+
+    if (!empty($version) && $version == 'original') {
+      if (!empty($key)) $filename = $key .'.'. $filename;
+
+      # safety the filename
+      $filename = Inflector::slug($filename, '_');
+
+      # original file creation
+      $filename .= '.'. substr(md5(microtime(true).rand(0,9999)), 0, 5);
+    } else {
+
+      # versioned file creation
+      #$version = !empty($version) ? $version : null;
+      $filename = $version .'.'. $filename;
+    }
+
+    # return formatted filename w/ extension
+    return strtolower($filename .'.'. $extension);
+  }
+
+/**
 * Provide HumanizeSize a file size in bytes and an easier to read value will return 
 * 
 * @param int $size Size in bytes
 * @access public
 */
   function assetHumanizeSize($size = 0) {
+    $output = null;
     
     switch ($size) {
       case 0:
-        return '0 Bytes';
+        $output = '0 Bytes';
       break;
       case 1:
-        return '1 Byte';
+        $output = '1 Byte';
       break;
       case $size < 1024:
-        return $size . ' Bytes';
+        $output = $size . ' Bytes';
       break;
       case $size < 1024 * 1024:
-        return sprintf("%01.0f", $size / 1024). 'KB';
+        $output = sprintf("%01.0f", $size / 1024). 'KB';
       break;
       case $size < 1024 * 1024 * 1024:
-        return sprintf("%01.2f", $size / 1024 / 1024). 'MB';
+        $output = sprintf("%01.2f", $size / 1024 / 1024). 'MB';
       break;
       case $size < 1024 * 1024 * 1024 * 1024:
-        return sprintf("%01.2f", $size / 1024 / 1024 / 1024). 'GB';
+        $output = sprintf("%01.2f", $size / 1024 / 1024 / 1024). 'GB';
       break;
       case $size < 1024 * 1024 * 1024 * 1024 * 1024:
-        return sprintf("%01.2f", $size / 1024 / 1024 / 1024 / 1024). 'TB';
+        $output = sprintf("%01.2f", $size / 1024 / 1024 / 1024 / 1024). 'TB';
+      break;
     }
+    
+    return $output;
   }
 
 /**
@@ -208,6 +274,45 @@
     );
     
     return !empty($type) && in_array($type, array_keys($mimes)) ? $mimes[$type] : $mimes;
+  }
+
+/**
+* Saves the newly renamed file into the previously created directory
+* 
+* @param object $model Model using this behavior
+* @param string $source Full file path of the source file to be moved or copied
+* @param string $filename New name of the created file
+* @param mixed $upload Tmp files are moved (uploaded), while duplicate files are copied (for resizing purposes)
+* @access private
+*/
+  function assetSaveFile(&$model, $source, $filename, $upload = true) {
+
+    # create the desintation
+    $destination = assetDirectoryPath($model) . $filename;
+    
+    switch (true) {
+      case is_uploaded_file($source):
+        if (!move_uploaded_file($source, $destination)) return false;
+      break;
+      case $upload == false:
+        if (!copy($source, $destination)) return false;
+      break;
+      case $upload == 'move':
+        if (!rename($source, $destination)) return false;
+      break;
+      case !is_uploaded_file($source):
+        return assetSaveFile($model, $source, $filename, 'move');
+      break;
+    }
+
+    # determine if the file exists
+    if (!file_exists($destination)) return false;
+
+    # change the permissions
+    if (!chmod($destination, 0755)) return false;
+
+    # nothing failed
+    return true;
   }
   
 /**

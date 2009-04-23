@@ -35,7 +35,6 @@ class Asset extends AssetsAppModel {
     $this->read();
     
     if (!empty($this->data['Asset']) && is_array($this->data['Asset'])) {
-      
       $assets = array();
       
       $entries = $this->find('all', array(
@@ -53,8 +52,12 @@ class Asset extends AssetsAppModel {
         }
       }
       
-      $response = assetDelete($model, $this->data['Asset']['model'], $this->data['Asset']['foreign_key'], $assets);
-
+      $model = new Object();
+      $model->id = $this->data['Asset']['foreign_key'];
+      $model->name = $this->data['Asset']['model'];
+      
+      $response = assetDelete($model, $assets);
+      
       if (is_array($response) && $response['status'] != true) {
         assetError($this, $response['message'], $response['type']);
         return false;
