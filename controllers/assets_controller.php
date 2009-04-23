@@ -29,10 +29,10 @@ class AssetsController extends AssetsAppController {
 * 
 * @access public
 */
-  function backend_delete() {
+  function backend_delete($id) {
     
     # retrieve this records results
-    $entry = $this->Asset->read();
+    $entry = $this->Asset->read(null, $id);
     
     if (!empty($entry['Asset']) && is_array($entry['Asset'])) {
       
