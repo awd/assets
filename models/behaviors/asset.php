@@ -197,8 +197,7 @@ class AssetBehavior extends ModelBehavior {
       return false;
     }
     
-    $children = $this->_settings($model);
-    foreach ($children as $name => $setting) {
+    foreach ($this->_settings($model) as $name => $setting) {
       $fieldName = Inflector::underscore($name);
       
       # determine when to validate
@@ -308,8 +307,7 @@ class AssetBehavior extends ModelBehavior {
       return false;
     }
     
-    $children = $this->_settings($model);
-    foreach ($children as $name => $setting) {
+    foreach ($this->_settings($model) as $name => $setting) {
       $fieldName = Inflector::underscore($name);
       
       if (!empty($model->data[$model->name][$fieldName]['tmp_name'])) {
@@ -327,8 +325,7 @@ class AssetBehavior extends ModelBehavior {
 * @access public
 */  
   function afterDelete(&$model) {
-    $children = $this->_settings($model);
-    foreach ($children as $name => $setting) {
+    foreach ($this->_settings($model) as $name => $setting) {
       $model->{$name}->deleteAll(array('foreign_key' => $model->id, 'model' => $model->name));
     }
   }
@@ -343,8 +340,7 @@ class AssetBehavior extends ModelBehavior {
   function afterSave(&$model, $created) {
     if (!$created && !$model->exists()) return;
     
-    $children = $this->_settings($model);
-    foreach ($children as $name => $setting) {
+    foreach ($this->_settings($model) as $name => $setting) {
       if (empty($model->data[$name]['tmp_name'])) continue;
       
       # save the original entry
