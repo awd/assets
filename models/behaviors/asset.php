@@ -230,7 +230,7 @@ class AssetBehavior extends ModelBehavior {
         
         # always check if the required field is present - when required by config
         if ((!empty($setting['required']) && $setting['required'] == true) || ($this->required == true)) {
-
+          
           # validate against the field itself
           $validations['uploadField'] = array(
             'allowEmpty' => $setting['allowEmpty'],
@@ -291,7 +291,7 @@ class AssetBehavior extends ModelBehavior {
       }
       
       # merge new custom validations with existing validations
-      $model->validate = array_merge_recursive($model->validate, array($fieldName => $validations));
+      $model->validate[$fieldName] = $validations;
     }
   }
   
