@@ -78,12 +78,12 @@ class AssetBehavior extends ModelBehavior {
 
 /**
 * Maximum Size file size for uploads
-* Default is 2mb (in bytes)
+* Default is 5mb (in bytes)
 * 
 * @var int
 * @access public
 */
-  var $maxSize = 2097152;
+  var $maxSize = 5242880;
 
 /**
 * On determines when a specific set of actions should occur.
@@ -120,14 +120,6 @@ class AssetBehavior extends ModelBehavior {
 * @access public
 */
   var $required = false;
-
-/**
-* Session is an object shortcut to the SessionComponent
-* 
-* @var object
-* @access public
-*/
-  var $Session = null;
 
 /**
 * Allows maximum customization in terms of where the application stores specific assets.
@@ -710,7 +702,7 @@ class AssetBehavior extends ModelBehavior {
     # set the filename field value
     $original['filename'] = assetFileName($model->data[$name]['name'], 'original', $name);
     
-    # create new entry and assign parent_id
+    # create new entry
     $model->{$name}->create();
     
     # save the original file data
