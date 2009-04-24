@@ -710,13 +710,17 @@ class AssetBehavior extends ModelBehavior {
     # set the filename field value
     $original['filename'] = assetFileName($model->data[$name]['name'], 'original', $name);
     
+    # create new entry and assign parent_id
+    $model->{$name}->create();
+    
     # save the original file data
-    if (!$model->{$name}->save($original, false)) {
+    if (!$model->{$name}->create() || !$model->{$name}->save($original, false)) {
+      $model->{$name}->delete($original['parent_id']);
       $this->_setError($model, 'Critical Error found while saving record in afterSave: '. $name, 'error');
       return false;
     }
     
-    # update parent id
+    # update the parent_id
     $model->{$name}->saveField('parent_id', $model->{$name}->id);
     
     # create the directory path for this asset
