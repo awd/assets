@@ -237,13 +237,15 @@ class AssetBehavior extends ModelBehavior {
       # the following validations will only occur when data exists (handled within the validation)
       
       # validate against the upload storage path
-      $validations['uploadPath'] = array(
-        'allowEmpty' => false,
-        'last' => true,
-        'rule' => array('validateUploadPath'),
-        'message' => 'AssetBehavior cannot write to the "files" directory. Please contact an administrator.',
-        'required' => true
-      );
+      if (!empty($model->data[$model->alias][$fieldName]['tmp_name'])) {
+        $validations['uploadPath'] = array(
+          'allowEmpty' => false,
+          'last' => true,
+          'rule' => array('validateUploadPath'),
+          'message' => 'AssetBehavior cannot write to the "files" directory. Please contact an administrator.',
+          'required' => true
+        );
+      }
       
       # validate the file size
       $validations['uploadSize'] = array(
