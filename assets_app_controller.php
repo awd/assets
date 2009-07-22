@@ -14,7 +14,7 @@ class AssetsAppController extends AppController {
   
   function delete($id) {
     $this->Asset->delete($id);
-    #$this->redirect($this->referer());
+    $this->redirect($this->referer());
   }
   
 }
