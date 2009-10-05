@@ -236,6 +236,9 @@
   function assetMimes($type = null) {
     $mimes = array(
       'audio' => array(
+        'application/mp3',
+        'application/x-mp3',
+        'audio/mp3',
         'audio/mpeg',
         'audio/mpg'),
       'flash' => array(
