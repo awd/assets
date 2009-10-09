@@ -463,8 +463,15 @@ class AssetBehavior extends ModelBehavior {
     
     $availableMimes = assetMimes();
     
-    foreach (!empty($allowedMimes) && is_array($allowedMimes) ? $allowedMimes : array() as $type) {
-      if (($type == '*') || (in_array($fieldData[$fieldName]['type'], $availableMimes[$type]))) return true;
+    foreach (!empty($allowedMimes) ? $allowedMimes : array() as $type) {
+      if ($type == '*') return true;
+      
+      # check fileinfo first
+      $fileinfo = assetMimeType($fieldData[$fieldName]['tmp_name']);
+      if ((!$fileinfo) && (in_array($fileinfo, $availableMimes[$type]))) return true; 
+      
+      # check browser provided mime-type second
+      if (in_array($fieldData[$fieldName]['type'], $availableMimes[$type])) return true;
     }
     
     return false;
@@ -676,7 +683,7 @@ class AssetBehavior extends ModelBehavior {
       'field' => $name,
       'version' => 'original',
       'filename' => null,
-      'mime' => $model->data[$name]['type'],
+      'mime' => assetMimeType($model->data[$name]['tmp_name']),
       'size' => $model->data[$name]['size']
     );
     

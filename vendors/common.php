@@ -183,7 +183,6 @@
     } else {
 
       # versioned file creation
-      #$version = !empty($version) ? $version : null;
       $filename = $version .'.'. $filename;
     }
 
@@ -277,6 +276,33 @@
     );
     
     return !empty($type) && in_array($type, array_keys($mimes)) ? $mimes[$type] : $mimes;
+  }
+  
+/**
+ * Use Fileinfo to determine the file mime-type
+ * This method is much more accurate than browser provided values and the now deprecated content_mime_type()
+ *
+ * @param string $filepath Provide the full absolute file path
+ * @return string mime-type of the file, or false on failure
+ * @access private
+ */
+  function assetMimeType($filepath) {
+    if (class_exists("finfo")) {
+      if (!defined("FILEINFO_MAGIC_PATH")) define("FILEINFO_MAGIC_PATH", "/usr/share/misc/magic");
+      
+      $finfo = new finfo(FILEINFO_MIME, FILEINFO_MAGIC_PATH);
+      
+      if (!$finfo) return false;
+      
+      $fileinfo = $finfo->file($filepath);
+      $fileinfo = explode(';', $fileinfo);
+      $fileinfo = $fileinfo[0];
+      $fileinfo = trim($fileinfo);
+      
+      return $fileinfo;
+    }
+    
+    return false;
   }
 
 /**
